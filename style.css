@@ -271,3 +271,23 @@ dialog.modal h3 {
   flex: 1;
   margin-top: 0;
 }
+
+/* 8. Dashboard Footer & Reset */
+.dashboard-footer {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.btn-text-danger {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+}
+
+.btn-text-danger:hover {
+  color: var(--danger-color);
+  text-decoration: underline;
+}

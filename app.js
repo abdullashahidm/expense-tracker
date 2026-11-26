@@ -52,6 +52,9 @@ const categoryNameInput = document.getElementById('category-name-input');
 const categoryError = document.getElementById('category-error');
 const cancelCategoryBtn = document.getElementById('cancel-category-btn');
 
+// Reset Budget Option
+const resetAppBtn = document.getElementById('reset-app-btn');
+
 // ==========================================
 // 3. PERSISTENCE & FORMATTING HELPERS
 // ==========================================
@@ -247,6 +250,32 @@ categoryForm.addEventListener('submit', (e) => {
 });
 
 cancelCategoryBtn.addEventListener('click', closeCategoryModal);
+
+// 6.4 Reset App for a New Budget Cycle
+resetAppBtn.addEventListener('click', () => {
+  const confirmed = window.confirm(
+    'Reset your balance and clear all category totals to start fresh?'
+  );
+  if (!confirmed) return;
+
+  localStorage.removeItem(STORAGE_KEY);
+  state = {
+    isInitialized: false,
+    remainingBalance: 0,
+    categories: []
+  };
+  initialBalanceInput.value = '';
+  render();
+});
+
+// Optional UX polish: Close modals when clicking the dimmed backdrop outside the box
+[expenseModal, categoryModal].forEach((modal) => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.close();
+    }
+  });
+});
 
 // ==========================================
 // 7. INITIALIZE APP ON LOAD
