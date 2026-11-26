@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimal Expense Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SCREEN 1: Initial Balance Setup -->
+  <main id="setup-screen" class="screen hidden">
+    <div class="setup-card">
+      <h1>Welcome</h1>
+      <p>Set your starting balance to begin tracking.</p>
+      <form id="setup-form" novalidate>
+        <label for="initial-balance-input" class="sr-only">Starting Balance</label>
+        <input 
+          type="number" 
+          id="initial-balance-input" 
+          placeholder="0.00" 
+          step="0.01" 
+          required 
+        />
+        <p id="setup-error" class="error-msg hidden">Please enter a valid amount greater than 0.</p>
+        <button type="submit" class="btn-primary">Confirm Balance</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- SCREEN 2: Main Dashboard -->
+  <main id="dashboard-screen" class="screen hidden">
+    <header class="balance-header">
+      <span class="label">Remaining Balance</span>
+      <h1 id="remaining-balance-display">$0.00</h1>
+    </header>
+
+    <section class="categories-section">
+      <div class="section-header">
+        <h2>Categories</h2>
+        <button id="add-category-btn" class="btn-secondary">+ Add Category</button>
+      </div>
+      
+      <!-- Category tiles will be dynamically injected here by JS -->
+      <div id="category-grid" class="category-grid"></div>
+    </section>
+  </main>
+
+  <!-- MODAL 1: Add Expense -->
+  <dialog id="expense-modal" class="modal">
+    <form id="expense-form" method="dialog" novalidate>
+      <h3 id="expense-modal-title">Add Expense</h3>
+      <input 
+        type="number" 
+        id="expense-amount-input" 
+        placeholder="0.00" 
+        step="0.01" 
+        required 
+      />
+      <p id="expense-error" class="error-msg hidden">Please enter a valid number.</p>
+      <div class="modal-actions">
+        <button type="button" id="cancel-expense-btn" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-primary">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL 2: Add Custom Category -->
+  <dialog id="category-modal" class="modal">
+    <form id="category-form" method="dialog" novalidate>
+      <h3>New Category</h3>
+      <input 
+        type="text" 
+        id="category-name-input" 
+        placeholder="e.g., Video Games" 
+        maxlength="24"
+        required 
+      />
+      <p id="category-error" class="error-msg hidden">Please enter a category name.</p>
+      <div class="modal-actions">
+        <button type="button" id="cancel-category-btn" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-primary">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
