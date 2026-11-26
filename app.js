@@ -5,10 +5,10 @@ const STORAGE_KEY = 'minimal_expense_tracker_v1';
 
 // Default starter categories (you can customize these anytime)
 const DEFAULT_CATEGORIES = [
-  { id: 'cat-1', name: 'Food', spent: 0 },
-  { id: 'cat-2', name: 'Bus Fare', spent: 0 },
-  { id: 'cat-3', name: 'Groceries', spent: 0 },
-  { id: 'cat-4', name: 'Coffee', spent: 0 }
+  { id: 'cat-1', name: 'Vending machine', spent: 0 },
+  { id: 'cat-2', name: 'Bus fares', spent: 0 },
+  { id: 'cat-3', name: 'Weekly grocery', spent: 0 },
+  { id: 'cat-4', name: 'Shopping spree', spent: 0 }
 ];
 
 let state = {
