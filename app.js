@@ -271,8 +271,11 @@ setupForm.addEventListener('submit', (e) => {
 
   state.isInitialized = true;
   state.remainingBalance = roundMoney(val);
-  // Clone default categories so we don't mutate the constant
-  state.categories = structuredClone(DEFAULT_CATEGORIES);
+
+  // Only load default categories on a true first launch; otherwise keep carried-over tiles
+  if (!state.categories || state.categories.length === 0) {
+    state.categories = structuredClone(DEFAULT_CATEGORIES);
+  }
 
   saveState();
   render();
@@ -334,18 +337,27 @@ categoryForm.addEventListener('submit', (e) => {
 cancelCategoryBtn.addEventListener('click', closeCategoryModal);
 
 // 6.4 Reset App for a New Budget Cycle
+// 6.4 Reset App for a New Budget Cycle (Preserves Custom & Personalized Tiles)
 resetAppBtn.addEventListener('click', () => {
   const confirmed = window.confirm(
-    'Reset your balance and clear all category totals to start fresh?'
+    'Confirm?'
   );
   if (!confirmed) return;
 
-  localStorage.removeItem(STORAGE_KEY);
+  const carriedOverCategories = state.categories.map((cat) => ({
+    id: cat.id,
+    name: cat.name,
+    color: cat.color || 'default',
+    spent: 0
+  }));
+
   state = {
     isInitialized: false,
     remainingBalance: 0,
-    categories: []
+    categories: carriedOverCategories
   };
+
+  saveState();
   initialBalanceInput.value = '';
   render();
 });
