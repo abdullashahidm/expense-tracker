@@ -14,7 +14,8 @@ const DEFAULT_CATEGORIES = [
 let state = {
   isInitialized: false,
   remainingBalance: 0,
-  categories: []
+  categories: [],
+  history:[]
 };
 
 // Tracks which category tile the user tapped before opening the expense modal
@@ -77,19 +78,31 @@ const renameCategoryError = document.getElementById('rename-category-error');
 const colorSwatches = document.querySelectorAll('.color-swatch');
 const cancelTileSettingsBtn = document.getElementById('cancel-tile-settings-btn');
 
+//Delete button reference
+const deleteCategoryBtn = document.getElementById('delete-category-btn');
+
 // ==========================================
 // 3. PERSISTENCE & FORMATTING HELPERS
 // ==========================================
+
+
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) {
     try {
-      state = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      state = {
+        isInitialized: Boolean(parsed.isInitialized),
+        remainingBalance: parsed.remainingBalance || 0,
+        categories: parsed.categories || [],
+        history: Array.isArray(parsed.history) ? parsed.history : []
+      };
     } catch (err) {
       console.error('Failed to parse saved state:', err);
     }
   }
 }
+  
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -108,6 +121,25 @@ function formatCurrency(amount) {
   });
   return isNegative ? `-$${formatted}` : `$${formatted}`;
 }
+
+function formatLogTimestamp(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const day = pad(date.getDate());
+  const month = pad(date.getMonth() + 1);
+  const year = date.getFullYear();
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function logAction(actionText) {
+  if (!Array.isArray(state.history)) {
+    state.history = [];
+  }
+  const entry = `${formatLogTimestamp()} : ${actionText}`;
+  state.history.push(entry);
+}
+ 
 
 // ==========================================
 // 4. UI RENDERING
@@ -277,6 +309,8 @@ setupForm.addEventListener('submit', (e) => {
     state.categories = structuredClone(DEFAULT_CATEGORIES);
   }
 
+  logAction(`Initial balance set to ${formatCurrency(state.remainingBalance)}`);
+
   saveState();
   render();
 });
@@ -299,6 +333,7 @@ expenseForm.addEventListener('submit', (e) => {
     category.spent = roundMoney(category.spent + cleanAmount);
     // Boundary Case: Allows negative remaining balance without blocking
     state.remainingBalance = roundMoney(state.remainingBalance - cleanAmount);
+    logAction(`-${formatCurrency(cleanAmount)} ${category.name}`);
 
     saveState();
     render();
@@ -329,6 +364,7 @@ categoryForm.addEventListener('submit', (e) => {
   };
 
   state.categories.push(newCategory);
+  logAction(`Added category "${name}"`);
   saveState();
   render();
   closeCategoryModal();
@@ -336,7 +372,6 @@ categoryForm.addEventListener('submit', (e) => {
 
 cancelCategoryBtn.addEventListener('click', closeCategoryModal);
 
-// 6.4 Reset App for a New Budget Cycle
 // 6.4 Reset App for a New Budget Cycle (Preserves Custom & Personalized Tiles)
 resetAppBtn.addEventListener('click', () => {
   const confirmed = window.confirm(
@@ -354,7 +389,8 @@ resetAppBtn.addEventListener('click', () => {
   state = {
     isInitialized: false,
     remainingBalance: 0,
-    categories: carriedOverCategories
+    categories: carriedOverCategories,
+    history:[]
   };
 
   saveState();
@@ -384,7 +420,11 @@ editBalanceForm.addEventListener('submit', (e) => {
     return;
   }
 
+  const oldBalance=state.remainingBalance;
   state.remainingBalance = roundMoney(newBalance);
+  logAction(
+  `Remaining balance altered from ${formatCurrency(oldBalance)} to ${formatCurrency(state.remainingBalance)}`
+  );
   saveState();
   render();
   closeEditBalanceModal();
@@ -439,8 +479,12 @@ tileSettingsForm.addEventListener('submit', (e) => {
 
   const category = state.categories.find((c) => c.id === editingTileId);
   if (category) {
+    const oldName = category.name;
     category.name = newName;
     category.color = selectedTileColor;
+    if (oldName !== newName) {
+      logAction(`Renamed category "${oldName}" to "${newName}"`);
+    }
     saveState();
     render();
   }
@@ -449,6 +493,22 @@ tileSettingsForm.addEventListener('submit', (e) => {
 });
 
 cancelTileSettingsBtn.addEventListener('click', closeTileSettingsModal);
+
+deleteCategoryBtn.addEventListener('click', () => {
+  const category = state.categories.find((c) => c.id === editingTileId);
+  if (!category) return;
+
+  const confirmed = window.confirm(
+    `Delete category "${category.name}"? Its accumulated total will remain deducted from your balance.`
+  );
+  if (!confirmed) return;
+
+  state.categories = state.categories.filter((c) => c.id !== editingTileId);
+  logAction(`Removed category "${category.name}"`);
+  saveState();
+  render();
+  closeTileSettingsModal();
+});
 
 // ==========================================
 // 7. INITIALIZE APP ON LOAD
