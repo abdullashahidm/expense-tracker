@@ -432,32 +432,113 @@ editBalanceForm.addEventListener('submit', (e) => {
 
 cancelEditBalanceBtn.addEventListener('click', closeEditBalanceModal);
 
-// 6.6 Export State Snapshot
+// 6.6 Export State Snapshot & PDF Report
+function generatePdfReport(dateStamp, totalSpent) {
+  // Verify jsPDF loaded properly (e.g., if offline without cache)
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert('PDF library could not be loaded. Please ensure your are connected to the internet.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxLineWidth = pageWidth - margin * 2;
+  let y = 20;
+
+  // Helper to automatically add a new page when approaching bottom margin
+  function checkPageBreak(neededHeight = 8) {
+    if (y + neededHeight > pageHeight - margin) {
+      doc.addPage();
+      y = 20;
+    }
+  }
+
+  // --- 1. TITLE & TIMESTAMP ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(17, 24, 39);
+  doc.text('Expenses: Report', margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(107, 114, 128);
+  doc.text(`Generated: ${formatLogTimestamp()}`, margin, y);
+  y += 8;
+
+  // Horizontal divider
+  doc.setDrawColor(229, 231, 235);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
+
+  // --- 2. ACCOUNT SUMMARY ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(17, 24, 39);
+  doc.text('Account Summary', margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(`Remaining Balance: ${formatCurrency(state.remainingBalance)}`, margin, y);
+  y += 6;
+  doc.text(`Total Cumulative Spent: ${formatCurrency(totalSpent)}`, margin, y);
+  y += 11;
+
+  // --- 3. CATEGORY BREAKDOWN ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('Category Breakdown', margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10.5);
+  state.categories.forEach((cat) => {
+    checkPageBreak(7);
+    doc.text(`• ${cat.name}: ${formatCurrency(cat.spent)}`, margin + 2, y);
+    y += 6;
+  });
+  y += 6;
+
+  // --- 4. CHRONOLOGICAL TRANSACTION & ACTIVITY HISTORY ---
+  checkPageBreak(15);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('Chronological Activity History', margin, y);
+  y += 7;
+
+  doc.setFont('courier', 'normal'); // Monospace aligns timestamps cleanly
+  doc.setFontSize(9.5);
+  doc.setTextColor(31, 41, 55);
+
+  const historyList = Array.isArray(state.history) ? state.history : [];
+  if (historyList.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.text('No activity recorded in this cycle.', margin + 2, y);
+  } else {
+    historyList.forEach((entry) => {
+      // Wrap long lines cleanly so nothing overflows the right margin
+      const wrappedLines = doc.splitTextToSize(entry, maxLineWidth - 2);
+      checkPageBreak(wrappedLines.length * 5 + 2);
+      doc.text(wrappedLines, margin + 2, y);
+      y += wrappedLines.length * 5 + 1.5;
+    });
+  }
+
+  doc.save(`expense-report-${dateStamp}.pdf`);
+}
+
 exportBtn.addEventListener('click', () => {
   const totalSpent = roundMoney(
     state.categories.reduce((sum, cat) => sum + cat.spent, 0)
   );
-
-  const snapshot = {
-    exportedAt: new Date().toISOString(),
-    remainingBalance: state.remainingBalance,
-    totalSpent: totalSpent,
-    categories: state.categories
-  };
-
-  const jsonString = JSON.stringify(snapshot, null, 2);
-  const blob = new Blob([jsonString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-
   const dateStamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  downloadLink.download = `expense-snapshot-${dateStamp}.json`;
 
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  URL.revokeObjectURL(url); // Clean up memory
+  generatePdfReport(dateStamp, totalSpent);
 });
 
 // 6.7 Personalize Category Tile (Rename & Border Color)
