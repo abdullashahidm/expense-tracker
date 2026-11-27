@@ -176,6 +176,7 @@ function closeCategoryModal() {
   categoryModal.close();
 }
 
+
 function openEditBalanceModal() {
   editBalanceInput.value = state.remainingBalance;
   editBalanceInput.classList.remove('input-error');
@@ -291,7 +292,7 @@ resetAppBtn.addEventListener('click', () => {
 });
 
 // Optional UX polish: Close modals when clicking the dimmed backdrop outside the box
-[expenseModal, categoryModal].forEach((modal) => {
+[expenseModal, categoryModal, editBalanceModal].forEach((modal) => {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.close();
