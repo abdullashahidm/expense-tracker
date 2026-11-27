@@ -63,6 +63,9 @@ const editBalanceInput = document.getElementById('edit-balance-input');
 const editBalanceError = document.getElementById('edit-balance-error');
 const cancelEditBalanceBtn = document.getElementById('cancel-edit-balance-btn');
 
+//Export button
+const exportBtn=document.getElementById("export-btn");
+
 // ==========================================
 // 3. PERSISTENCE & FORMATTING HELPERS
 // ==========================================
@@ -320,6 +323,34 @@ editBalanceForm.addEventListener('submit', (e) => {
 });
 
 cancelEditBalanceBtn.addEventListener('click', closeEditBalanceModal);
+
+// 6.6 Export State Snapshot
+exportBtn.addEventListener('click', () => {
+  const totalSpent = roundMoney(
+    state.categories.reduce((sum, cat) => sum + cat.spent, 0)
+  );
+
+  const snapshot = {
+    exportedAt: new Date().toISOString(),
+    remainingBalance: state.remainingBalance,
+    totalSpent: totalSpent,
+    categories: state.categories
+  };
+
+  const jsonString = JSON.stringify(snapshot, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const dateStamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = `expense-snapshot-${dateStamp}.json`;
+
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(url); // Clean up memory
+});
 
 // ==========================================
 // 7. INITIALIZE APP ON LOAD
