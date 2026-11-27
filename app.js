@@ -55,6 +55,14 @@ const cancelCategoryBtn = document.getElementById('cancel-category-btn');
 // Reset Budget Option
 const resetAppBtn = document.getElementById('reset-app-btn');
 
+//Edit Remaining Budget
+const editBalanceBtn = document.getElementById('edit-balance-btn');
+const editBalanceModal = document.getElementById('edit-balance-modal');
+const editBalanceForm = document.getElementById('edit-balance-form');
+const editBalanceInput = document.getElementById('edit-balance-input');
+const editBalanceError = document.getElementById('edit-balance-error');
+const cancelEditBalanceBtn = document.getElementById('cancel-edit-balance-btn');
+
 // ==========================================
 // 3. PERSISTENCE & FORMATTING HELPERS
 // ==========================================
@@ -168,6 +176,20 @@ function closeCategoryModal() {
   categoryModal.close();
 }
 
+function openEditBalanceModal() {
+  editBalanceInput.value = state.remainingBalance;
+  editBalanceInput.classList.remove('input-error');
+  editBalanceError.classList.add('hidden');
+
+  editBalanceModal.showModal();
+  editBalanceInput.focus();
+  editBalanceInput.select(); // Highlights the number for quick typing
+}
+
+function closeEditBalanceModal() {
+  editBalanceModal.close();
+}
+
 // ==========================================
 // 6. EVENT LISTENERS (BUSINESS LOGIC)
 // ==========================================
@@ -276,6 +298,27 @@ resetAppBtn.addEventListener('click', () => {
     }
   });
 });
+
+// 6.5 Edit Remaining Balance Submission
+editBalanceBtn.addEventListener('click', openEditBalanceModal);
+
+editBalanceForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newBalance = parseFloat(editBalanceInput.value);
+
+  if (isNaN(newBalance)) {
+    editBalanceInput.classList.add('input-error');
+    editBalanceError.classList.remove('hidden');
+    return;
+  }
+
+  state.remainingBalance = roundMoney(newBalance);
+  saveState();
+  render();
+  closeEditBalanceModal();
+});
+
+cancelEditBalanceBtn.addEventListener('click', closeEditBalanceModal);
 
 // ==========================================
 // 7. INITIALIZE APP ON LOAD

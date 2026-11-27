@@ -155,6 +155,7 @@ button {
 
 /* 5. Dashboard Screen */
 .balance-header {
+  position:relative;
   background: var(--surface-color);
   padding: 2rem;
   border-radius: var(--radius);
@@ -162,6 +163,24 @@ button {
   border: 1px solid var(--border-color);
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.btn-icon-top-right {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+
+.btn-icon-top-right:hover {
+  background-color: #f3f4f6;
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 .balance-header .label {

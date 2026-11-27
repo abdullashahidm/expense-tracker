@@ -32,6 +32,11 @@
   <!-- SCREEN 2: Main Dashboard -->
   <main id="dashboard-screen" class="screen hidden">
     <header class="balance-header">
+      
+      <button id="edit-balance-button" class="btn-icon-top-right" type="button" title="Edit remaining balance">
+        Edit
+      </button>
+      
       <span class="label">Remaining Balance</span>
       <h1 id="remaining-balance-display">$0.00</h1>
     </header>
@@ -86,6 +91,25 @@
       <div class="modal-actions">
         <button type="button" id="cancel-category-btn" class="btn-ghost">Cancel</button>
         <button type="submit" class="btn-primary">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+<!-- MODAL 3: Edit Remaining Balance -->
+  <dialog id="edit-balance-modal" class="modal">
+    <form id="edit-balance-form" method="dialog" novalidate>
+      <h3>Update Remaining Balance</h3>
+      <input 
+        type="number" 
+        id="edit-balance-input" 
+        placeholder="0.00" 
+        step="0.01" 
+        required 
+      />
+      <p id="edit-balance-error" class="error-msg hidden">Please enter a valid number.</p>
+      <div class="modal-actions">
+        <button type="button" id="cancel-edit-balance-btn" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-primary">Save</button>
       </div>
     </form>
   </dialog>
