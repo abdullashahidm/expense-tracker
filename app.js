@@ -5,10 +5,10 @@ const STORAGE_KEY = 'minimal_expense_tracker_v1';
 
 // Default starter categories (you can customize these anytime)
 const DEFAULT_CATEGORIES = [
-  { id: 'cat-1', name: 'Vending machine', spent: 0 },
-  { id: 'cat-2', name: 'Bus fares', spent: 0 },
-  { id: 'cat-3', name: 'Weekly grocery', spent: 0 },
-  { id: 'cat-4', name: 'Shopping spree', spent: 0 }
+  { id: 'cat-1', name: 'Vending machine', spent: 0, color: 'default' },
+  { id: 'cat-2', name: 'Bus fares', spent: 0, color: 'default' },
+  { id: 'cat-3', name: 'Weekly grocery', spent: 0, color: 'default' },
+  { id: 'cat-4', name: 'Shopping spree', spent: 0, color: 'default' }
 ];
 
 let state = {
@@ -20,8 +20,11 @@ let state = {
 // Tracks which category tile the user tapped before opening the expense modal
 let activeCategoryId = null;
 
+let editingTileId = null;
+let selectedTileColor = 'default';
+
 // ==========================================
-// 2. DOM ELEMENT REFERENCES
+// 2. DOM ELEMENT REFERENCES:
 // ==========================================
 // Screens
 const setupScreen = document.getElementById('setup-screen');
@@ -65,6 +68,14 @@ const cancelEditBalanceBtn = document.getElementById('cancel-edit-balance-btn');
 
 //Export button
 const exportBtn=document.getElementById("export-btn");
+
+// Tile Settings Modal Elements
+const tileSettingsModal = document.getElementById('tile-settings-modal');
+const tileSettingsForm = document.getElementById('tile-settings-form');
+const renameCategoryInput = document.getElementById('rename-category-input');
+const renameCategoryError = document.getElementById('rename-category-error');
+const colorSwatches = document.querySelectorAll('.color-swatch');
+const cancelTileSettingsBtn = document.getElementById('cancel-tile-settings-btn');
 
 // ==========================================
 // 3. PERSISTENCE & FORMATTING HELPERS
@@ -123,12 +134,25 @@ function render() {
   // Render Category Tiles
   categoryGrid.innerHTML = '';
   state.categories.forEach((category) => {
-    const tile = document.createElement('button');
-    tile.type = 'button';
+    const tile = document.createElement('div');
+    tile.setAttribute('role', 'button');
+    tile.setAttribute('tabindex', '0');
     tile.className = 'category-tile';
     tile.dataset.id = category.id;
+    tile.dataset.color = category.color || 'default';
 
-    // Using textContent prevents any XSS issues with custom category names
+    // Three-dot menu button
+    const menuBtn = document.createElement('button');
+    menuBtn.type = 'button';
+    menuBtn.className = 'tile-menu-btn';
+    menuBtn.title = 'Customize category';
+    menuBtn.setAttribute('aria-label', `Customize ${category.name}`);
+    menuBtn.textContent = '⋮';
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevents opening the Add Expense modal
+      openTileSettingsModal(category);
+    });
+
     const nameSpan = document.createElement('span');
     nameSpan.className = 'category-name';
     nameSpan.textContent = category.name;
@@ -137,11 +161,18 @@ function render() {
     amountSpan.className = 'category-amount';
     amountSpan.textContent = formatCurrency(category.spent);
 
+    tile.appendChild(menuBtn);
     tile.appendChild(nameSpan);
     tile.appendChild(amountSpan);
 
     // Tapping tile opens the Add Expense Modal for that category
     tile.addEventListener('click', () => openExpenseModal(category));
+    tile.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openExpenseModal(category);
+      }
+    });
 
     categoryGrid.appendChild(tile);
   });
@@ -192,6 +223,31 @@ function openEditBalanceModal() {
 
 function closeEditBalanceModal() {
   editBalanceModal.close();
+}
+
+function updateSwatchSelection(color) {
+  selectedTileColor = color;
+  colorSwatches.forEach((swatch) => {
+    swatch.classList.toggle('selected', swatch.dataset.color === color);
+  });
+}
+
+function openTileSettingsModal(category) {
+  editingTileId = category.id;
+  renameCategoryInput.value = category.name;
+  renameCategoryInput.classList.remove('input-error');
+  renameCategoryError.classList.add('hidden');
+
+  updateSwatchSelection(category.color || 'default');
+
+  tileSettingsModal.showModal();
+  renameCategoryInput.focus();
+  renameCategoryInput.select();
+}
+
+function closeTileSettingsModal() {
+  editingTileId = null;
+  tileSettingsModal.close();
 }
 
 // ==========================================
@@ -295,7 +351,7 @@ resetAppBtn.addEventListener('click', () => {
 });
 
 // Optional UX polish: Close modals when clicking the dimmed backdrop outside the box
-[expenseModal, categoryModal, editBalanceModal].forEach((modal) => {
+[expenseModal, categoryModal, editBalanceModal, tileSettingsModal].forEach((modal) => {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.close();
@@ -351,6 +407,36 @@ exportBtn.addEventListener('click', () => {
   document.body.removeChild(downloadLink);
   URL.revokeObjectURL(url); // Clean up memory
 });
+
+// 6.7 Personalize Category Tile (Rename & Border Color)
+colorSwatches.forEach((swatch) => {
+  swatch.addEventListener('click', () => {
+    updateSwatchSelection(swatch.dataset.color);
+  });
+});
+
+tileSettingsForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newName = renameCategoryInput.value.trim();
+
+  if (!newName) {
+    renameCategoryInput.classList.add('input-error');
+    renameCategoryError.classList.remove('hidden');
+    return;
+  }
+
+  const category = state.categories.find((c) => c.id === editingTileId);
+  if (category) {
+    category.name = newName;
+    category.color = selectedTileColor;
+    saveState();
+    render();
+  }
+
+  closeTileSettingsModal();
+});
+
+cancelTileSettingsBtn.addEventListener('click', closeTileSettingsModal);
 
 // ==========================================
 // 7. INITIALIZE APP ON LOAD

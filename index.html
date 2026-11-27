@@ -116,6 +116,38 @@
     </form>
   </dialog>
 
+<!-- MODAL 4: Personalize Category Tile -->
+  <dialog id="tile-settings-modal" class="modal">
+    <form id="tile-settings-form" method="dialog" novalidate>
+      <h3>Customize Category</h3>
+      
+      <label for="rename-category-input" class="field-label">Category Name</label>
+      <input 
+        type="text" 
+        id="rename-category-input" 
+        maxlength="24"
+        required 
+      />
+      <p id="rename-category-error" class="error-msg hidden">Please enter a category name.</p>
+
+      <span class="field-label">Border Color</span>
+      <div id="color-swatch-group" class="color-swatch-group">
+        <button type="button" class="color-swatch" data-color="default" title="Default Gray" aria-label="Default Gray"></button>
+        <button type="button" class="color-swatch" data-color="green" title="Green" aria-label="Green"></button>
+        <button type="button" class="color-swatch" data-color="blue" title="Blue" aria-label="Blue"></button>
+        <button type="button" class="color-swatch" data-color="red" title="Red" aria-label="Red"></button>
+        <button type="button" class="color-swatch" data-color="purple" title="Purple" aria-label="Purple"></button>
+        <button type="button" class="color-swatch" data-color="yellow" title="Yellow" aria-label="Yellow"></button>
+        <button type="button" class="color-swatch" data-color="black" title="Black" aria-label="Black"></button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="cancel-tile-settings-btn" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="app.js"></script>
 </body>
 </html>
